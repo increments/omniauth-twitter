@@ -14,15 +14,15 @@ module OmniAuth
 
       info do
         {
-          :nickname => raw_info['screen_name'],
+          :nickname => raw_info['username'],
           :name => raw_info['name'],
-          :email => raw_info["email"],
+          :email => nil,
           :location => raw_info['location'],
           :image => image_url,
           :description => raw_info['description'],
           :urls => {
             'Website' => raw_info['url'],
-            'Twitter' => "https://twitter.com/#{raw_info['screen_name']}",
+            'Twitter' => "https://twitter.com/#{raw_info['username']}",
           }
         }
       end
@@ -32,7 +32,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= JSON.load(access_token.get('/1.1/account/verify_credentials.json?include_entities=false&skip_status=true&include_email=true').body)
+        @raw_info ||= JSON.load(access_token.get('/2/users/me?user.fields=created_at,description,entities,id,location,name,public_metrics,profile_image_url,url,username,verified,verified_type,withheld').body)["data"]
       rescue ::Errno::ETIMEDOUT
         raise ::Timeout::Error
       end
@@ -84,7 +84,7 @@ module OmniAuth
       private
 
       def image_url
-        original_url = options[:secure_image_url] ? raw_info['profile_image_url_https'] : raw_info['profile_image_url']
+        original_url = raw_info['profile_image_url']
         case options[:image_size]
         when 'mini'
           original_url.sub('normal', 'mini')
